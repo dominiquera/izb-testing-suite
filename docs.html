@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IZB Test Suite - Dokumentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --bg-light: #16213e;
+            --text: #eaeaea;
+            --accent: #4f8cff;
+            --border: #2a2a4a;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        nav {
+            width: 280px;
+            background: var(--bg-light);
+            padding: 20px;
+            border-right: 1px solid var(--border);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        nav h2 {
+            color: var(--accent);
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        nav li {
+            margin: 8px 0;
+        }
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        nav a:hover {
+            opacity: 1;
+            color: var(--accent);
+        }
+        main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+            max-width: 900px;
+        }
+        h1 {
+            color: var(--accent);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: var(--accent);
+            margin-top: 40px;
+        }
+        h3 {
+            color: #7aa2f7;
+        }
+        code {
+            background: var(--bg-light);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+        pre {
+            background: var(--bg-light);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: var(--bg-light);
+            color: var(--accent);
+        }
+        a {
+            color: var(--accent);
+        }
+        .section {
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+        }
+        .mermaid {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <h2>IZB Test Suite</h2>
+            <ul>
+                <li><a href="#prozess">Prozessübersicht</a></li>
+                <li><strong>Skripte:</strong></li>
+                <li><a href="#create-test-data">create_test_data</a></li>
+                <li><a href="#delete-test-data">delete_test_data</a></li>
+                <li><a href="#fill-form">fill_form</a></li>
+                <li><a href="#find-and-delete-test-data">find_and_delete_test_data</a></li>
+                <li><a href="#get-close-leads">get_close_leads</a></li>
+                <li><a href="#make-queue-webhook-rerun">make_queue_webhook_rerun</a></li>
+                <li><a href="#simulate-pandadoc-signed">simulate_pandadoc_signed</a></li>
+                <li><a href="#trigger-document-creation">trigger_document_creation</a></li>
+            </ul>
+        </nav>
+        <main>
+            <section id="prozess" class="section"><h1 id="prozessubersicht">Prozessübersicht</h1>
+<h2 id="gesamtablauf">Gesamtablauf</h2>
+<pre class="mermaid">flowchart TD
+    subgraph prod["Produktiver Ablauf"]
+        P1["1. Applikationsformular ausgefüllt"]
+        P2["2. Dokumente/Business-Daten anlegen"]
+        P3["3. Close #11: PandaDoc Vertrag erstellen"]
+        P4["4. Kunde unterschreibt PandaDoc"]
+        P5["5. Make: QCG Auftrag starten"]
+        P6["6. Ordner werden erstellt"]
+
+        P1 --> P2 --> P3 --> P4 --> P5 --> P6
+    end
+
+    subgraph test["Test-Simulation"]
+        T1["create_test_data.py"]
+        T2["fill_form.py"]
+        T3["trigger_document_creation.py"]
+        T4["simulate_pandadoc_signed.py"]
+        T5["delete_test_data.py"]
+
+        T1 --> T2 --> T3 --> T4 --> T5
+    end
+
+    prod -.->|"simuliert durch"| test
+</pre>
+
+<h2 id="datenfluss">Datenfluss</h2>
+<pre class="mermaid">flowchart LR
+    subgraph airtable["Airtable"]
+        BIZ[businesses_clients]
+        DEAL[deals]
+        EMP[employees_students]
+        DOC[documents]
+        APP[applications]
+    end
+
+    subgraph external["Externe Systeme"]
+        CLOSE[Close CRM]
+        PANDA[PandaDoc]
+        MAKE[Make.com]
+        N8N[N8N]
+        GDRIVE[Google Drive]
+    end
+
+    BIZ --> DEAL --> EMP --> DOC --> APP
+    APP --> N8N
+    CLOSE --> PANDA
+    PANDA --> MAKE
+    MAKE --> GDRIVE
+</pre>
+
+<h2 id="skript-zuordnung">Skript-Zuordnung</h2>
+<table>
+<thead>
+<tr>
+<th>Produktions-Schritt</th>
+<th>Test-Skript</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Applikationsformular</td>
+<td><code>fill_form.py</code></td>
+<td>Füllt das Formular automatisch aus</td>
+</tr>
+<tr>
+<td>Daten anlegen</td>
+<td><code>create_test_data.py</code></td>
+<td>Erstellt Testdaten in Airtable</td>
+</tr>
+<tr>
+<td>Dokumente generieren</td>
+<td><code>trigger_document_creation.py</code></td>
+<td>Triggert N8N Webhook</td>
+</tr>
+<tr>
+<td>PandaDoc unterschrieben</td>
+<td><code>simulate_pandadoc_signed.py</code></td>
+<td>Simuliert Webhook-Event</td>
+</tr>
+<tr>
+<td>Aufräumen</td>
+<td><code>delete_test_data.py</code></td>
+<td>Löscht Testdaten</td>
+</tr>
+</tbody>
+</table></section>
+            <section id="create-test-data" class="section"><h1 id="create_test_datapy">create_test_data.py</h1>
+<p>Erstellt verknüpfte Testdaten in Airtable für Workflow-Tests.</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="environment-variables">Environment Variables</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AIRTABLE_TOKEN</code></td>
+<td>Airtable API Token</td>
+</tr>
+<tr>
+<td><code>AIRTABLE_BASE_ID</code></td>
+<td>Airtable Base ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="konfiguration-im-script">Konfiguration (im Script)</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Werte</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SELECTED_STATUS</code></td>
+<td>1=pending, 2=done, 3=error</td>
+<td>Document Status</td>
+</tr>
+<tr>
+<td><code>SELECTED_FORMULAR</code></td>
+<td>1-8</td>
+<td>Formular-Typ</td>
+</tr>
+<tr>
+<td><code>EMPLOYEE_FIRST_NAME</code></td>
+<td>String</td>
+<td>Vorname Mitarbeiter</td>
+</tr>
+<tr>
+<td><code>EMPLOYEE_LAST_NAME</code></td>
+<td>String</td>
+<td>Nachname Mitarbeiter</td>
+</tr>
+<tr>
+<td><code>BUSINESS_NAME</code></td>
+<td>String</td>
+<td>Firmenname</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ausgaben">Ausgaben</h2>
+<h3 id="airtable-records">Airtable Records</h3>
+<p>Erstellt folgende verknüpfte Records:
+1. <code>businesses_clients</code> - Firmendaten
+2. <code>deals</code> - Deal-Eintrag
+3. <code>employees_students</code> - Mitarbeiter
+4. <code>documents</code> - Dokument mit Formular-Link
+5. <code>applications</code> - Applikation</p>
+<h3 id="datei">Datei</h3>
+<ul>
+<li><code>test_data_ids.json</code> - Speichert alle erstellten Record-IDs</li>
+</ul>
+<h2 id="beispiel">Beispiel</h2>
+<pre class="codehilite"><code class="language-bash">python create_test_data.py
+</code></pre>
+
+<h2 id="nachster-schritt">Nächster Schritt</h2>
+<p>→ <code>fill_form.py</code> oder <code>trigger_document_creation.py</code></p></section>
+            <section id="delete-test-data" class="section"><h1 id="delete_test_datapy">delete_test_data.py</h1>
+<p>Löscht die erstellten Testdaten aus Airtable.</p>
+<h2 id="kontext">Kontext</h2>
+<p>Löscht nur die Records, deren IDs in <code>test_data_ids.json</code> gespeichert sind.
+Wurde von <code>create_test_data.py</code> erstellt.</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="environment-variables">Environment Variables</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AIRTABLE_TOKEN</code></td>
+<td>Airtable API Token</td>
+</tr>
+<tr>
+<td><code>AIRTABLE_BASE_ID</code></td>
+<td>Airtable Base ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="datei">Datei</h3>
+<ul>
+<li><code>test_data_ids.json</code> - Enthält die zu löschenden Record-IDs</li>
+</ul>
+<h2 id="ausgaben">Ausgaben</h2>
+<ul>
+<li>Records werden aus Airtable gelöscht</li>
+<li><code>test_data_ids.json</code> wird gelöscht</li>
+</ul>
+<h3 id="losch-reihenfolge">Lösch-Reihenfolge</h3>
+<ol>
+<li>applications (abhängig von allem)</li>
+<li>documents</li>
+<li>employees_students</li>
+<li>deals</li>
+<li>businesses_clients</li>
+</ol>
+<h2 id="beispiel">Beispiel</h2>
+<pre class="codehilite"><code class="language-bash">python delete_test_data.py
+</code></pre>
+
+<h2 id="alternative">Alternative</h2>
+<p>Für umfangreicheres Löschen (inkl. verknüpfter Records):
+→ <code>find_and_delete_test_data.py</code></p></section>
+            <section id="fill-form" class="section"><h1 id="fill_formpy">fill_form.py</h1>
+<p>Füllt das Datenerfassungsformular automatisch aus (Playwright).</p>
+<h2 id="kontext">Kontext</h2>
+<p>Nach dem PandaDoc unterschrieben wird:
+1. Make-Prozess startet → erstellt Business-Application in Airtable
+2. Dieses Skript macht ein <strong>UPDATE</strong> auf die existierende Application</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="url-parameter">URL-Parameter</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>deal_id</code></td>
+<td>Deal-ID aus Airtable</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>Record-ID der Application</td>
+</tr>
+</tbody>
+</table>
+<h3 id="konfiguration-im-script">Konfiguration (im Script)</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FORM_URL</code></td>
+<td>Komplette URL mit Parametern</td>
+</tr>
+<tr>
+<td><code>HEADLESS</code></td>
+<td>True/False - Browser sichtbar?</td>
+</tr>
+<tr>
+<td><code>TEST_DATA</code></td>
+<td>Dict mit allen Formulardaten</td>
+</tr>
+</tbody>
+</table>
+<h3 id="test_data-struktur">TEST_DATA Struktur</h3>
+<ul>
+<li>Persönliche Daten (Geschlecht, Name, etc.)</li>
+<li>Unternehmensdaten (Firma, Branche, Adresse)</li>
+<li>Mitarbeiterzahlen</li>
+<li>Betriebsdaten (Betriebsnummer, eService)</li>
+<li>Bankdaten</li>
+<li>Mitarbeiter-Subformular (Array)</li>
+</ul>
+<h2 id="ausgaben">Ausgaben</h2>
+<ul>
+<li>Formular wird ausgefüllt und abgesendet</li>
+<li>Application in Airtable wird aktualisiert</li>
+</ul>
+<h2 id="voraussetzungen">Voraussetzungen</h2>
+<pre class="codehilite"><code class="language-bash">pip install playwright
+playwright install chromium
+</code></pre>
+
+<h2 id="beispiel">Beispiel</h2>
+<pre class="codehilite"><code class="language-bash">python fill_form.py
+</code></pre>
+
+<h2 id="nachster-schritt">Nächster Schritt</h2>
+<p>→ <code>trigger_document_creation.py</code></p></section>
+            <section id="find-and-delete-test-data" class="section"><h1 id="find_and_delete_test_datapy">find_and_delete_test_data.py</h1>
+<p>Findet und löscht Testdaten inkl. aller verknüpften Records.</p>
+<h2 id="kontext">Kontext</h2>
+<p>Sucht in der Applications-Tabelle nach "Test" im Namen und findet
+automatisch alle verknüpften Records (documents, employees, deals, businesses).</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="environment-variables">Environment Variables</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AIRTABLE_TOKEN</code></td>
+<td>Airtable API Token</td>
+</tr>
+<tr>
+<td><code>AIRTABLE_BASE_ID</code></td>
+<td>Airtable Base ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cli-parameter">CLI Parameter</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--delete</code></td>
+<td>Führt die Löschung durch</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ausgaben">Ausgaben</h2>
+<h3 id="ohne-delete">Ohne --delete</h3>
+<ul>
+<li>Listet alle gefundenen Testdaten auf</li>
+<li>Zeigt verknüpfte Records pro Tabelle</li>
+</ul>
+<h3 id="mit-delete">Mit --delete</h3>
+<ul>
+<li>Löscht alle gefundenen Records</li>
+<li>In korrekter Reihenfolge (abhängige zuerst)</li>
+</ul>
+<h2 id="beispiel">Beispiel</h2>
+<pre class="codehilite"><code class="language-bash"># Nur anzeigen
+python find_and_delete_test_data.py
+
+# Löschen
+python find_and_delete_test_data.py --delete
+</code></pre></section>
+            <section id="get-close-leads" class="section"><h1 id="get_close_leadspy">get_close_leads.py</h1>
+<p>Sucht Leads in Close CRM nach E-Mail-Adresse.</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="environment-variables">Environment Variables</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CLOSE_API_KEY</code></td>
+<td>Close API Key (Basic Auth)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="konfiguration-im-script">Konfiguration (im Script)</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email_to_search</code></td>
+<td>E-Mail-Adresse zum Suchen</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ausgaben">Ausgaben</h2>
+<ul>
+<li>Liste aller Leads mit der E-Mail</li>
+<li>Pro Lead: ID, Name, Status, Kontakte, Custom Fields</li>
+<li>Link zum Lead in Close</li>
+</ul>
+<h2 id="api-aufruf">API-Aufruf</h2>
+<pre class="codehilite"><code>GET https://api.close.com/api/v1/lead/
+?query=email:&quot;...&quot;
+</code></pre>
+
+<h2 id="beispiel">Beispiel</h2>
+<pre class="codehilite"><code class="language-bash">python get_close_leads.py
+</code></pre>
+
+<p>Ausgabe:</p>
+<pre class="codehilite"><code>--- Lead 1 ---
+ID:          lead_xxx
+Name:        Firma ABC
+Status:      Datenbank
+URL:         https://app.close.com/lead/lead_xxx
+Kontakte:
+  - Max Mustermann
+    E-Mails: max@firma.de
+</code></pre></section>
+            <section id="make-queue-webhook-rerun" class="section"><h1 id="make_queue_webhook_rerunpy">make_queue_webhook_rerun.py</h1>
+<p>Sendet JSON-Payload an eine Webhook-URL.</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="konfiguration-im-script">Konfiguration (im Script)</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WEBHOOK_URL</code></td>
+<td>Ziel-URL für den Webhook</td>
+</tr>
+<tr>
+<td><code>PAYLOAD_FILE</code></td>
+<td>Pfad zur JSON-Datei</td>
+</tr>
+</tbody>
+</table>
+<h3 id="datei">Datei</h3>
+<ul>
+<li><code>webhook_payload.json</code> - JSON-Payload zum Senden</li>
+</ul>
+<h2 id="ausgaben">Ausgaben</h2>
+<ul>
+<li>HTTP Response Status</li>
+<li>Response Body</li>
+</ul>
+<h2 id="beispiel">Beispiel</h2>
+<ol>
+<li>JSON in <code>webhook_payload.json</code> einfügen:</li>
+</ol>
+<pre class="codehilite"><code class="language-json">{
+  &quot;key&quot;: &quot;value&quot;
+}
+</code></pre>
+
+<ol>
+<li>Skript ausführen:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash">python make_queue_webhook_rerun.py
+</code></pre></section>
+            <section id="simulate-pandadoc-signed" class="section"><h1 id="simulate_pandadoc_signedpy">simulate_pandadoc_signed.py</h1>
+<p>Simuliert, dass der PandaDoc-Vertrag unterschrieben wurde.</p>
+<h2 id="kontext">Kontext</h2>
+<p>Ruft den Make-Webhook "1.1 neuen QCG Auftrag starten" auf.
+→ Ordner werden in Google Drive erstellt.</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="konfiguration-im-script">Konfiguration (im Script)</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EMAIL</code></td>
+<td>E-Mail-Adresse</td>
+</tr>
+<tr>
+<td><code>FILE_ID</code></td>
+<td>Google Drive File ID der PDF</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vorbereitung">Vorbereitung</h3>
+<ol>
+<li>PDF in den Upload-Folder hochladen</li>
+<li>File-ID aus der Google Drive URL kopieren</li>
+<li>Im Script eintragen</li>
+</ol>
+<h2 id="ausgaben">Ausgaben</h2>
+<ul>
+<li>Make Webhook wird aufgerufen</li>
+<li>QCG Auftrag wird gestartet</li>
+<li>Ordner werden in Google Drive erstellt</li>
+</ul>
+<h2 id="api-aufruf">API-Aufruf</h2>
+<pre class="codehilite"><code>POST https://hook.eu2.make.com/...
+Content-Type: application/json
+
+{
+  &quot;email&quot;: &quot;...&quot;,
+  &quot;file_id&quot;: &quot;...&quot;
+}
+</code></pre>
+
+<h2 id="beispiel">Beispiel</h2>
+<pre class="codehilite"><code class="language-bash">python simulate_pandadoc_signed.py
+</code></pre>
+
+<h2 id="nachster-schritt">Nächster Schritt</h2>
+<p>→ <code>delete_test_data.py</code> (Aufräumen)</p></section>
+            <section id="trigger-document-creation" class="section"><h1 id="trigger_document_creationpy">trigger_document_creation.py</h1>
+<p>Triggert die Dokumentenerstellung via N8N Webhook.</p>
+<h2 id="kontext">Kontext</h2>
+<p>Simuliert den Zustand nach dem Ausfüllen des Applikationsformulars.
+Legt Dokumente und Business-Daten an.</p>
+<h2 id="eingaben">Eingaben</h2>
+<h3 id="konfiguration-im-script">Konfiguration (im Script)</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Werte</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>USE_PRODUCTION_WEBHOOK</code></td>
+<td>True/False</td>
+<td>Prod oder Test Webhook</td>
+</tr>
+<tr>
+<td><code>SELECTED_FORMULAR</code></td>
+<td>1-8</td>
+<td>Welches Formular</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ausgaben">Ausgaben</h2>
+<ul>
+<li>N8N Webhook wird aufgerufen</li>
+<li>Dokumente werden in Airtable angelegt</li>
+<li>Business-Daten werden verarbeitet</li>
+</ul>
+<h2 id="api-aufruf">API-Aufruf</h2>
+<pre class="codehilite"><code>POST https://n8n.../webhook/...
+Content-Type: application/json
+
+{
+  &quot;record_id&quot;: &quot;...&quot;,
+  &quot;formular&quot;: &quot;...&quot;
+}
+</code></pre>
+
+<h2 id="beispiel">Beispiel</h2>
+<pre class="codehilite"><code class="language-bash">python trigger_document_creation.py
+</code></pre>
+
+<h2 id="nachster-schritt">Nächster Schritt</h2>
+<p>→ <code>simulate_pandadoc_signed.py</code></p></section>
+        </main>
+    </div>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>
