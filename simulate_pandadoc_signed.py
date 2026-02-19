@@ -21,6 +21,13 @@ EMAIL = "dominique@landeseiten.de"
 # Google Drive File ID (from URL: https://drive.google.com/file/d/FILE_ID/view)
 # Upload folder: https://drive.google.com/drive/u/4/folders/1EDHnjVEdbhOJ4x_CETUhYNAMJpBW6fhw
 FILE_ID = "101gsYGcLz513_MQsmngDMFnrXknZey9z"
+#https://drive.google.com/file/d/101gsYGcLz513_MQsmngDMFnrXknZey9z/view?usp=sharing
+
+# Die File-ID ist die Datei Testdatei peg,
+# die in der Zwischenablage liegt, die an den Webhook übergeben 
+# werden muss, weil das eigentlich das Panda-Doc ist, was heruntergeladen werden soll.
+# Die wird normalerweise von dem anderen Webhook eben, 
+# sobald das PandaDoc unterschrieben ist, runtergeladen und in die Zwischenablage hochgeladen. 
 
 # Webhook URL
 WEBHOOK_URL = "https://hook.eu1.make.com/j7poahnr90vxqm1yqo1fknl5cnfftaxb"

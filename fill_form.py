@@ -13,7 +13,7 @@ import time
 # KONFIGURATION
 # =============================================================================
 
-FORM_URL = "https://form.foerdernetz-deutschland.de/t/jnYBFipUYnus?deal_id=recEpYxwJ4VmH4GPj&id=recTyvMP0tDrUfuLc"
+FORM_URL = "https://form.foerdernetz-deutschland.de/t/jnYBFipUYnus?deal_id=rec73lW8zgYkGS2AP&id=recaWcC25a1UmyXcL"
 
 HEADLESS = False  # True = headless, False = sichtbar
 
@@ -27,7 +27,7 @@ TEST_DATA = {
     "vorname": "Max",
     "nachname": "Mustermann",
     "telefon": "1711234567",
-    "email": "dominique@landeseiten.de",
+    "email": "600ce685-4585-43ff-87cb-c864fffbf7cf@mailslurp.biz",
     "geburtsdatum": "15.01.1985",       # TT.MM.JJJJ
 
     # Unternehmensdaten
@@ -76,7 +76,7 @@ TEST_DATA = {
             "plz": "80331",
             "ort": "München",
             "telefon": "1761234567",
-            "email": "dominique@landeseiten.de",
+            "email": "0799c8bb-ddf1-4e14-bdd4-35d5664866de@mailslurp.biz",
             "beschaeftigung_beginn": "01.01.2020",
             "arbeitszeit_woche": "40",
             "arbeitstage": "Montag, Dienstag, Mittwoch, Donnerstag, Freitag",
@@ -100,7 +100,7 @@ TEST_DATA = {
             "bedarfsgemeinschaft": "Nein",
             "bildungsgutschein": "Nein",
             "eingliederungszuschuss": "Nein",
-            "weiterbildung": "Arbeitswelt 5.0",
+            "weiterbildung": "Arbeiten im Wandel: KI, Kommunikation & digitale Effizienz Teilzeit",
             "foerderung_start": "01.04.2026",
             "ausbildung": "Fachinformatiker",
             "familienstand": "ledig",
